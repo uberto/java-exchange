@@ -19,8 +19,19 @@
       <artifactId>jetty-server</artifactId>
       <version>${jettyVersion}</version>
     </dependency>
+
+      <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-servlets</artifactId>
+          <version>${jettyVersion}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-client</artifactId>
+          <version>${jettyVersion}</version>
+      </dependency>
+
   </dependencies>
- 
   <build>
     <plugins>
       <plugin>
@@ -37,7 +48,7 @@
           <execution><goals><goal>java</goal></goals></execution>
         </executions>
         <configuration>
-          <mainClass>com.gamasoft.example.HelloWorld</mainClass>
+          <mainClass>com.gamasoft.example.servlets.HelloWorld</mainClass>
         </configuration>
       </plugin>
     </plugins>
