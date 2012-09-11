@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ExchangeSyncronized implements Exchange {
 
@@ -14,43 +15,67 @@ public class ExchangeSyncronized implements Exchange {
     private List<Transaction> transactions = new ArrayList<>();
 
     @Override
-    public void sell(Trader trader, Stock stock, double minPrice) {
-       List<Bid> offers = buyBids.get(stock);
-        if (offers != null){
+    public Bid sell(Trader trader, Stock stock, double minPrice) {
+        Bid sell = new Bid(newBidId(), trader, stock, minPrice);
+        List<Bid> offers = buyBids.get(stock);
+        if (offers != null) {
             for (Bid offer : offers) {
-                if (offer.getPrice() >= minPrice){
+                if (offer.getPrice() >= minPrice) {
                     offers.remove(offer);
-                    transactions.add(new Transaction(offer.getTrader(), trader, stock, minPrice));
-                    return;
+                    transactions.add(new Transaction(offer, sell, minPrice));
+                    return sell;
                 }
             }
         }
-        List<Bid> stockBids = sellBids.get(stock);
-        if (stockBids == null){
-            stockBids =  new ArrayList<>();
-            sellBids.put(stock, stockBids);
+        List<Bid> stockBids = getSellBidsList(stock);
+        stockBids.add(sell);
+        return sell;
+    }
+
+    private long newBidId() {
+        return ThreadLocalRandom.current().nextLong(1_000_000, 1_000_000_000);
+    }
+
+    private List<Bid> getSellBidsList(Stock stock) {
+        return addListToMap(stock, sellBids);
+    }
+
+    private List<Bid> addListToMap(Stock stock, Map<Stock, List<Bid>> map) {
+        List<Bid> stockBids = map.get(stock);
+        if (stockBids == null) {
+            stockBids = new ArrayList<>();
+            map.put(stock, stockBids);
         }
-        stockBids.add(new Bid(1, trader, stock, minPrice));
+        return stockBids;
     }
 
     @Override
-    public void buy(Trader trader, Stock stock, double maxPrice) {
+    public Bid buy(Trader trader, Stock stock, double maxPrice) {
+        Bid bid = new Bid(newBidId(), trader, stock, maxPrice);
         List<Bid> offers = sellBids.get(stock);
-        if (offers != null){
+        if (!appendTransaction(bid, offers)) {
+            List<Bid> stockBids = getBuyBidsList(stock);
+            stockBids.add(bid);
+        }
+        return bid;
+    }
+
+    private boolean appendTransaction(Bid buy, List<Bid> offers) {
+        if (offers != null) {
             for (Bid offer : offers) {
-                if (offer.getPrice() <= maxPrice){
+                if (offer.getPrice() <= buy.getPrice()) {
                     offers.remove(offer);
-                    transactions.add(new Transaction(trader, offer.getTrader(), stock, maxPrice));
-                    return;
+                    transactions.add(new Transaction(buy, offer, buy.getPrice()));
+                    return true;
                 }
             }
         }
-        List<Bid> stockBids = buyBids.get(stock);
-        if (stockBids == null){
-            stockBids =  new ArrayList<>();
-            buyBids.put(stock, stockBids);
-        }
-        stockBids.add(new Bid(1, trader, stock, maxPrice));
+        return false;
+    }
+
+    private List<Bid> getBuyBidsList(Stock stock) {
+        return addListToMap(stock, buyBids);
+
     }
 
     @Override

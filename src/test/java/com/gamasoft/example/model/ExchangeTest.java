@@ -27,11 +27,11 @@ public class ExchangeTest {
     public void acceptBid() throws Exception {
 
         Stock myStock = new Stock("ABC", "AB Corp");
-        exchange.buy(traderA, myStock, 12);
-        exchange.sell(traderB, myStock, 12);
+        Bid b1 = exchange.buy(traderA, myStock, 12);
+        Bid b2 =exchange.sell(traderB, myStock, 12);
 
         assertThat(exchange.getTransactions().size(), is( 1));
-        assertThat(exchange.getTransactions().get(0), is(new Transaction(traderA, traderB, myStock, 12)));
+        assertThat(exchange.getTransactions().get(0), is(new Transaction(b1, b2, 12)));
 
     }
 
@@ -39,14 +39,14 @@ public class ExchangeTest {
     public void unacceptableBid() throws Exception {
 
         Stock myStock = new Stock("ABC", "AB Corp");
-        exchange.buy(traderA, myStock, 10);
-        exchange.sell(traderB, myStock, 12);
+        Bid b1 = exchange.buy(traderA, myStock, 10);
+        Bid b2 = exchange.sell(traderB, myStock, 12);
 
         assertThat(exchange.getTransactions().size(), is( 0));
 
-        exchange.sell(traderB, myStock, 9);
+        Bid b3 = exchange.sell(traderB, myStock, 9);
         assertThat(exchange.getTransactions().size(), is( 1));
-        assertThat(exchange.getTransactions().get(0), is(new Transaction(traderA, traderB, myStock, 9)));
+        assertThat(exchange.getTransactions().get(0), is(new Transaction(b1, b3, 9)));
 
 
     }
