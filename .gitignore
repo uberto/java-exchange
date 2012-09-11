@@ -1,3 +1,4 @@
 *.iws
 .idea/
 *.class
+.DS_Store
