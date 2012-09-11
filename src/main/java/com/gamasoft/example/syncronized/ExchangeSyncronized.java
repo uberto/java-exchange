@@ -3,13 +3,14 @@ package com.gamasoft.example.syncronized;
 import com.gamasoft.example.model.*;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExchangeSyncronized implements Exchange {
 
     private Map<Stock, SortedSet<Bid>> sellBids = new HashMap<>();
     private Map<Stock, SortedSet<Bid>> buyBids = new HashMap<>();
     private List<Transaction> transactions = new ArrayList<>();
+    private AtomicInteger nextBidId = new AtomicInteger(1);
 
     @Override
     public Bid sell(Trader trader, Stock stock, double minPrice) {
@@ -38,7 +39,7 @@ public class ExchangeSyncronized implements Exchange {
     }
 
     private long newBidId() {
-        return ThreadLocalRandom.current().nextLong(1_000_000, 1_000_000_000);
+        return nextBidId.getAndIncrement();
     }
 
     private SortedSet<Bid> getSellBidsList(Stock stock) {

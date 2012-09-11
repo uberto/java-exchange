@@ -29,9 +29,12 @@ public class ExchangeTest {
 
         Stock myStock = new Stock("ABC", "AB Corp");
         Bid b1 = exchange.buy(traderA, myStock, 12);
-        Bid b2 =exchange.sell(traderB, myStock, 12);
+        Bid b2 = exchange.sell(traderB, myStock, 12);
 
-        assertThat(exchange.getTransactions().size(), is( 1));
+        assertThat(b1.getId(), is(1L));
+        assertThat(b2.getId(), is(2L));
+        assertThat(exchange.getTransactions().size(), is(1));
+        assertThat(exchange.getTransactions().size(), is(1));
         assertThat(exchange.getTransactions().get(0), is(new Transaction(b1, b2, 12)));
 
     }
@@ -45,14 +48,14 @@ public class ExchangeTest {
 
         assertThat(s1.getId(), not(b1.getId()));
 
-        assertThat(exchange.getTransactions().size(), is( 0));
+        assertThat(exchange.getTransactions().size(), is(0));
 
         Bid s2 = exchange.sell(traderB, myStock, 9);
         Bid s3 = exchange.sell(traderB, myStock, 15);
-        assertThat(exchange.getTransactions().size(), is( 1));
+        assertThat(exchange.getTransactions().size(), is(1));
         assertThat(exchange.getTransactions().get(0), is(new Transaction(b1, s2, 10)));
 
-        assertThat(exchange.getTransactions().get(0).toString(), is("Transaction{buy=Bid{id=90401895, trader=Trader{name='Al'}, stock=Stock{name='AB Corp', ticker='ABC'}, price=10.0}, sell=Bid{id=783977366, trader=Trader{name='Ben'}, stock=Stock{name='AB Corp', ticker='ABC'}, price=9.0}, price=10.0}"));
+        assertThat(exchange.getTransactions().get(0).toString(), is("Transaction{buy=Bid{id=1, trader=Trader{name='Al'}, stock=Stock{name='AB Corp', ticker='ABC'}, price=10.0}, sell=Bid{id=3, trader=Trader{name='Ben'}, stock=Stock{name='AB Corp', ticker='ABC'}, price=9.0}, price=10.0}"));
 
 
     }
