@@ -63,6 +63,7 @@ public class ExchangeTest {
         Bid s1 = exchange.sell(traderB, myStock, 9);
         Bid s2 = exchange.sell(traderB, myStock, 12);
         Bid s3 = exchange.sell(traderB, myStock, 10);
+        Bid s4 = exchange.sell(traderB, myStock, 15);
         assertThat(exchange.getTransactions().size(), is(0));
 
         Bid b4 = exchange.buy(traderA, myStock, 12);
@@ -78,5 +79,6 @@ public class ExchangeTest {
         assertThat(exchange.getTransactions().get(2), is(new Transaction(b6, s2, 12)));
 
     }
+
 
 }
