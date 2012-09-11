@@ -2,7 +2,7 @@ package com.gamasoft.example.model;
 
 public class Trader {
 
-    private String name;
+    private final String name;
 
     public Trader(String name) {
         this.name = name;

@@ -2,9 +2,9 @@ package com.gamasoft.example.model;
 
 public class Transaction {
 
-    private Bid buy;
-    private Bid sell;
-    private double price;
+    private final Bid buy;
+    private final Bid sell;
+    private final double price;
 
     public Transaction(Bid buy, Bid sell, double price) {
         this.buy = buy;

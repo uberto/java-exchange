@@ -1,10 +1,10 @@
 package com.gamasoft.example.model;
 
 public class Bid {
-    private long id;
-    private Trader trader;
-    private Stock stock;
-    private double price;
+    private final long id;
+    private final Trader trader;
+    private final Stock stock;
+    private final double price;
 
     public Bid(long id, Trader trader, Stock stock, double price) {
         this.id = id;

@@ -1,9 +1,10 @@
 package com.gamasoft.example.model;
 
 public class Stock {
-    private String name;
 
-    private String ticker;
+    private final String name;
+
+    private final String ticker;
 
     public Stock(String ticker, String name) {
         this.name = name;
