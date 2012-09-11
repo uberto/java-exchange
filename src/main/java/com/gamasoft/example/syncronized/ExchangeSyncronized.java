@@ -13,28 +13,24 @@ public class ExchangeSyncronized implements Exchange {
 
     @Override
     public Bid sell(Trader trader, Stock stock, double minPrice) {
-        Bid sell = new Bid(newBidId(), trader, stock, minPrice);
+        Bid bid = new Bid(newBidId(), trader, stock, minPrice);
         SortedSet<Bid> offers = buyBids.get(stock);
-        if (offers != null && offers.size() > 0) {
-            Bid offer = offers.last();
-            if (offer.getPrice() >= minPrice) {
-                offers.remove(offer);
-                transactions.add(new Transaction(offer, sell, offer.getPrice()));
-                return sell;
-            }
+        if (!appendSellTransaction(bid, offers)) {
+            SortedSet<Bid> stockBids = getSellBidsList(stock);
+            stockBids.add(bid);
         }
-        SortedSet<Bid> stockBids = getSellBidsList(stock);
-        stockBids.add(sell);
-        return sell;
+        return bid;
 
 
     }
+
+
 
     @Override
     public Bid buy(Trader trader, Stock stock, double maxPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, maxPrice);
         SortedSet<Bid> offers = sellBids.get(stock);
-        if (!appendTransaction(bid, offers)) {
+        if (!appendBuyTransaction(bid, offers)) {
             SortedSet<Bid> stockBids = getBuyBidsList(stock);
             stockBids.add(bid);
         }
@@ -64,12 +60,25 @@ public class ExchangeSyncronized implements Exchange {
     }
 
 
-    private boolean appendTransaction(Bid buy, SortedSet<Bid> offers) {
-        if (offers != null) {
+    private boolean appendBuyTransaction(Bid buy, SortedSet<Bid> offers) {
+        if (offers != null && offers.size() > 0) {
             Bid offer = offers.first();
-            if (offer.getPrice() <= buy.getPrice() && offers.size() > 0) {
+            if (offer.getPrice() <= buy.getPrice()) {
                 offers.remove(offer);
                 transactions.add(new Transaction(buy, offer, offer.getPrice()));
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    private boolean appendSellTransaction(Bid sell, SortedSet<Bid> offers) {
+        if (offers != null && offers.size() > 0) {
+            Bid offer = offers.last();
+            if (sell.getPrice() <= offer.getPrice()) {
+                offers.remove(offer);
+                transactions.add(new Transaction(offer, sell, offer.getPrice()));
                 return true;
             }
 
