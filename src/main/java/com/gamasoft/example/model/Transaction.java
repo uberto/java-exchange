@@ -12,6 +12,18 @@ public class Transaction {
         this.price = price;
     }
 
+    public Bid getBuy() {
+        return buy;
+    }
+
+    public Bid getSell() {
+        return sell;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
