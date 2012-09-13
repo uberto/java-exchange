@@ -34,7 +34,6 @@ public class ExchangeTest {
         assertThat(b1.getId(), is(1L));
         assertThat(b2.getId(), is(2L));
         assertThat(exchange.getTransactions().size(), is(1));
-        assertThat(exchange.getTransactions().size(), is(1));
         assertThat(exchange.getTransactions().get(0), is(new Transaction(b1, b2, 12)));
 
     }
@@ -81,6 +80,21 @@ public class ExchangeTest {
         assertThat(exchange.getTransactions().get(0), is(new Transaction(b4, s1, 9)));
         assertThat(exchange.getTransactions().get(1), is(new Transaction(b5, s3, 10)));
         assertThat(exchange.getTransactions().get(2), is(new Transaction(b6, s2, 12)));
+
+    }
+
+    @Test
+    public void ignoreOtherStocks() throws Exception {
+
+        Stock abc = new Stock("ABC", "AB Corp");
+        Stock jkl = new Stock("JKL", "JK Lmt");
+        Bid b1 = exchange.buy(traderA, abc, 12);
+        Bid s1 = exchange.sell(traderB, jkl, 12);
+        assertThat(exchange.getTransactions().size(), is(0));
+        Bid b2 = exchange.buy(traderA, jkl, 12);
+        assertThat(exchange.getTransactions().size(), is(1));
+
+        assertThat(exchange.getTransactions().get(0), is(new Transaction(b2, s1, 12)));
 
     }
 

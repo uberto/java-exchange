@@ -1,28 +1,29 @@
 package com.gamasoft.example.syncronized;
 
 import com.gamasoft.example.model.*;
+import com.google.common.collect.SortedMultiset;
+import com.google.common.collect.TreeMultiset;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExchangeSyncronized implements Exchange {
 
-    private Map<Stock, SortedSet<Bid>> sellBids = new HashMap<>();
-    private Map<Stock, SortedSet<Bid>> buyBids = new HashMap<>();
+    private Map<Stock, SortedMultiset<Bid>> sellBids = new HashMap<>();
+    private Map<Stock, SortedMultiset<Bid>> buyBids = new HashMap<>();
     private List<Transaction> transactions = new ArrayList<>();
-    private AtomicInteger nextBidId = new AtomicInteger(1);
+    private int nextBidId = 1;
 
     @Override
     public Bid sell(Trader trader, Stock stock, double minPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, minPrice);
-        SortedSet<Bid> offers = buyBids.get(stock);
+        SortedMultiset<Bid> offers = buyBids.get(stock);
         if (!appendSellTransaction(bid, offers)) {
-            SortedSet<Bid> stockBids = getSellBidsList(stock);
-            stockBids.add(bid);
+            SortedMultiset<Bid> sellBidsList = getSellBidsList(stock);
+            if (!sellBidsList.add(bid)){
+                throw new RuntimeException("impossible to add " + bid + "  to sellList " + sellBidsList);
+            }
         }
         return bid;
-
-
     }
 
 
@@ -30,29 +31,29 @@ public class ExchangeSyncronized implements Exchange {
     @Override
     public Bid buy(Trader trader, Stock stock, double maxPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, maxPrice);
-        SortedSet<Bid> offers = sellBids.get(stock);
+        SortedMultiset<Bid> offers = sellBids.get(stock);
         if (!appendBuyTransaction(bid, offers)) {
-            SortedSet<Bid> stockBids = getBuyBidsList(stock);
-            stockBids.add(bid);
+            SortedMultiset<Bid> buyBidsList = getBuyBidsList(stock);
+            if (!buyBidsList.add(bid)){
+                throw new RuntimeException("impossible to add " + bid + "  to buyList " + buyBidsList);
+            }
         }
         return bid;
     }
 
     private long newBidId() {
-        return nextBidId.getAndIncrement();
+        return nextBidId++;
     }
 
-    private SortedSet<Bid> getSellBidsList(Stock stock) {
-        return addListToMap(stock, sellBids);
-    }
 
-    private SortedSet<Bid> addListToMap(Stock stock, Map<Stock, SortedSet<Bid>> map) {
-        SortedSet<Bid> stockBids = map.get(stock);
+
+    private SortedMultiset<Bid> addListToMap(Stock stock, Map<Stock, SortedMultiset<Bid>> map) {
+        SortedMultiset<Bid> stockBids = map.get(stock);
         if (stockBids == null) {
-            stockBids = new TreeSet<>(new Comparator<Bid>() {
+            stockBids = TreeMultiset.create(new Comparator<Bid>() {
                 @Override
-                public int compare(Bid b1, Bid b2) {
-                    return (int) (b1.getPrice() - b2.getPrice());
+                public int compare(Bid o1, Bid o2) {
+                    return (int) (10000 * (o1.getPrice() - o2.getPrice()));
                 }
             });
             map.put(stock, stockBids);
@@ -61,11 +62,13 @@ public class ExchangeSyncronized implements Exchange {
     }
 
 
-    private boolean appendBuyTransaction(Bid buy, SortedSet<Bid> offers) {
+    private boolean appendBuyTransaction(Bid buy, SortedMultiset<Bid> offers) {
         if (offers != null && offers.size() > 0) {
-            Bid offer = offers.first();
+            Bid offer = offers.firstEntry().getElement();
             if (offer.getPrice() <= buy.getPrice()) {
-                offers.remove(offer);
+                if (!offers.remove(offer)){
+                    throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
+                }
                 transactions.add(new Transaction(buy, offer, offer.getPrice()));
                 return true;
             }
@@ -74,11 +77,13 @@ public class ExchangeSyncronized implements Exchange {
         return false;
     }
 
-    private boolean appendSellTransaction(Bid sell, SortedSet<Bid> offers) {
+    private boolean appendSellTransaction(Bid sell, SortedMultiset<Bid> offers) {
         if (offers != null && offers.size() > 0) {
-            Bid offer = offers.last();
+            Bid offer = offers.lastEntry().getElement();
             if (sell.getPrice() <= offer.getPrice()) {
-                offers.remove(offer);
+                if (!offers.remove(offer)){
+                    throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
+                }
                 transactions.add(new Transaction(offer, sell, offer.getPrice()));
                 return true;
             }
@@ -87,13 +92,18 @@ public class ExchangeSyncronized implements Exchange {
         return false;
     }
 
-    private SortedSet<Bid> getBuyBidsList(Stock stock) {
+    public SortedMultiset<Bid> getBuyBidsList(Stock stock) {
         return addListToMap(stock, buyBids);
+    }
 
+    public SortedMultiset<Bid> getSellBidsList(Stock stock) {
+        return addListToMap(stock, sellBids);
     }
 
     @Override
     public List<Transaction> getTransactions() {
         return transactions;
     }
+
+
 }
