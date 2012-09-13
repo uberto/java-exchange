@@ -105,7 +105,7 @@ public class SingleThreadPerformanceTest {
             transactionVerification(transactions);
 
             transactions.clear();
-            System.out.println(j + " done " + BIDS_BLOCK * 2 + " bids in " + ms + " micros.  trans.concluded:" + trans + " (" + percent(trans) + "%)");
+            System.out.println(j + " done " + BIDS_BLOCK * 2 + " bids in " + ms + " microsec.  transactions: " + trans + " (" + percent(trans) + "%)");
         }
 
 
