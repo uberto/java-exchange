@@ -1,4 +1,4 @@
-package com.gamasoft.example.syncronized;
+package com.gamasoft.example.collections;
 
 import com.gamasoft.example.model.*;
 import com.google.common.collect.SortedMultiset;

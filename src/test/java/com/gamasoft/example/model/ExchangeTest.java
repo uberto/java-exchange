@@ -1,6 +1,6 @@
 package com.gamasoft.example.model;
 
-import com.gamasoft.example.syncronized.ExchangeSyncronized;
+import com.gamasoft.example.collections.ExchangeSyncronized;
 import org.junit.Before;
 import org.junit.Test;
 

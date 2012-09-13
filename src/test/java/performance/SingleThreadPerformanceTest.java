@@ -4,7 +4,7 @@ import com.gamasoft.example.model.Bid;
 import com.gamasoft.example.model.Stock;
 import com.gamasoft.example.model.Trader;
 import com.gamasoft.example.model.Transaction;
-import com.gamasoft.example.syncronized.ExchangeSyncronized;
+import com.gamasoft.example.collections.ExchangeSyncronized;
 import com.google.common.collect.SortedMultiset;
 import org.junit.Before;
 import org.junit.Test;
