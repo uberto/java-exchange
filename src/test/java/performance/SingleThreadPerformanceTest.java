@@ -124,8 +124,8 @@ public class SingleThreadPerformanceTest {
     }
 
 
-    private int percent(int trans) {
-        return (100 * trans) / BIDS_BLOCK;
+    private double percent(int trans) {
+        return (100.0 * trans) / BIDS_BLOCK;
     }
 
     private Stock randomStock() {
