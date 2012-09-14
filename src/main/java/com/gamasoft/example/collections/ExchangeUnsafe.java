@@ -6,8 +6,7 @@ import com.google.common.collect.TreeMultiset;
 
 import java.util.*;
 
-public class ExchangeSyncronized implements Exchange {
-
+public class ExchangeUnsafe implements Exchange {
     private Map<Stock, SortedMultiset<Bid>> sellBids = new HashMap<>();
     private Map<Stock, SortedMultiset<Bid>> buyBids = new HashMap<>();
     private List<Transaction> transactions = new ArrayList<>();
@@ -50,7 +49,12 @@ public class ExchangeSyncronized implements Exchange {
     private SortedMultiset<Bid> addListToMap(Stock stock, Map<Stock, SortedMultiset<Bid>> map) {
         SortedMultiset<Bid> stockBids = map.get(stock);
         if (stockBids == null) {
-            stockBids = TreeMultiset.create();
+            stockBids = TreeMultiset.create(new Comparator<Bid>() {
+                @Override
+                public int compare(Bid o1, Bid o2) {
+                    return (int) (10000 * (o1.getPrice() - o2.getPrice()));
+                }
+            });
             map.put(stock, stockBids);
         }
         return stockBids;

@@ -1,6 +1,7 @@
 package com.gamasoft.example.model;
 
-public class Bid {
+public class Bid implements Comparable<Bid> {
+
     private final long id;
     private final Trader trader;
     private final Stock stock;
@@ -64,5 +65,10 @@ public class Bid {
                 ", stock=" + stock +
                 ", price=" + price +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Bid o) {
+        return (int) (10000 * (this.getPrice() - o.getPrice()));
     }
 }

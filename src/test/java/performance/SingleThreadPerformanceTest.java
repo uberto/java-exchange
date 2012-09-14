@@ -1,14 +1,18 @@
 package performance;
 
-import com.gamasoft.example.model.Bid;
-import com.gamasoft.example.model.Stock;
-import com.gamasoft.example.model.Trader;
-import com.gamasoft.example.model.Transaction;
+import com.gamasoft.example.collections.ExchangeNull;
 import com.gamasoft.example.collections.ExchangeSyncronized;
+import com.gamasoft.example.collections.ExchangeUnsafe;
+import com.gamasoft.example.model.*;
 import com.google.common.collect.SortedMultiset;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -18,22 +22,38 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+
+@Category(PerformanceTests.class)
+@RunWith(value = Parameterized.class)
 public class SingleThreadPerformanceTest {
 
     public static final int STOCKS_NUMBER = 100;
     public static final int TRADERS_NUMBER = 100;
-    public static final int BIDS_BLOCK = 500_000;
-    public static final int TIMES = 10;
-    private ExchangeSyncronized exchange;
+    public static final int BIDS_BLOCK = 5_000;
+    public static final int TIMES = 100;
     private Trader[] traders = new Trader[TRADERS_NUMBER];
     private Stock[] stocks = new Stock[STOCKS_NUMBER];
 
 
     private Random priceGenerator = new Random( System.currentTimeMillis() );
 
+    private Exchange exchange;
+
+    public SingleThreadPerformanceTest(Exchange exchange) {
+        System.out.println("Testing with " + exchange.getClass().getSimpleName());
+        this.exchange = exchange;
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() {
+        Object[][] data = new Object[][] { { new ExchangeSyncronized() }, { new ExchangeUnsafe() }, { new ExchangeNull() }};
+        return Arrays.asList(data);
+    }
+
+
+
     @Before
     public void setUp() throws Exception {
-        exchange = new ExchangeSyncronized();
 
         for (int i = 0; i < STOCKS_NUMBER; i++) {
             stocks[i] = new Stock("S" + Integer.toHexString(i), "Stock " + i);
