@@ -12,7 +12,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -26,9 +26,9 @@ import static org.junit.Assert.assertTrue;
 @RunWith(value = Parameterized.class)
 public class MultiThreadPerformanceTest {
 
-    public static final int THREAD_POOL_SIZE = 50;
+    public static final int THREAD_POOL_SIZE = 8;
     public static final int BIDS_BLOCK = 5_000;
-    public static final int TIMES = 100;
+    public static final int TIMES = 20;
 
     public static final int STOCKS_NUMBER = 100;
     public static final int TRADERS_NUMBER = 100;
@@ -76,7 +76,7 @@ public class MultiThreadPerformanceTest {
         }
     }
 
-    private void transactionVerification(List<Transaction> transactions) {
+    private void transactionVerification(Queue<Transaction> transactions) {
         for (Transaction transaction : transactions) {
 
             assertTrue(transaction.getBuy().getPrice() >= transaction.getSell().getPrice());
@@ -96,7 +96,7 @@ public class MultiThreadPerformanceTest {
 
             long ms = innerTest();
 
-            List<Transaction> transactions = exchange.getTransactions();
+            Queue<Transaction> transactions = exchange.getTransactions();
 
             int trans = transactions.size();
             transactionVerification(transactions);

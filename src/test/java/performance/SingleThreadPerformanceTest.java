@@ -11,10 +11,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.round;
@@ -64,7 +61,7 @@ public class SingleThreadPerformanceTest {
     }
 
 
-    private void transactionVerification(List<Transaction> transactions) {
+    private void transactionVerification(Queue<Transaction> transactions) {
         for (Transaction transaction : transactions) {
 
             assertTrue(transaction.getBuy().getPrice() >= transaction.getSell().getPrice());
@@ -88,7 +85,7 @@ public class SingleThreadPerformanceTest {
                 exchange.sell(randomTrader(), randomStock(), randomPrice());
             }
             long ms = (System.nanoTime() - start) / 1000;
-            List<Transaction> transactions = exchange.getTransactions();
+            Queue<Transaction> transactions = exchange.getTransactions();
 
             int trans = transactions.size();
             transactionVerification(transactions);

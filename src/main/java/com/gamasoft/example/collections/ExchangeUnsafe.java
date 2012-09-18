@@ -9,7 +9,7 @@ import java.util.*;
 public class ExchangeUnsafe implements Exchange {
     private Map<Stock, SortedMultiset<Bid>> sellBids = new HashMap<>();
     private Map<Stock, SortedMultiset<Bid>> buyBids = new HashMap<>();
-    private List<Transaction> transactions = new ArrayList<>();
+    private Queue<Transaction> transactions = new LinkedList<>();
     private int nextBidId = 1;
 
     @Override
@@ -102,7 +102,7 @@ public class ExchangeUnsafe implements Exchange {
     }
 
     @Override
-    public List<Transaction> getTransactions() {
+    public Queue<Transaction> getTransactions() {
         return transactions;
     }
 

@@ -4,12 +4,12 @@ import com.gamasoft.example.model.*;
 import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class ExchangeNull implements Exchange {
     private Bid nullBid = new Bid(0, new Trader("nullTrader"), new Stock("NN", "Null Stock"), 0);
-    private List<Transaction> nullTransList = new ArrayList<>();
+    private Queue<Transaction> nullTransList = new LinkedList<>();
     private SortedMultiset<Bid> nullBidsSorted = TreeMultiset.create();
 
     @Override
@@ -23,7 +23,7 @@ public class ExchangeNull implements Exchange {
     }
 
     @Override
-    public List<Transaction> getTransactions() {
+    public Queue<Transaction> getTransactions() {
         return nullTransList;
     }
 

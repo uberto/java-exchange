@@ -58,7 +58,7 @@ public class ExchangeTest {
         assertThat(b1.getId(), is(1L));
         assertThat(b2.getId(), is(2L));
         assertThat(exchange.getTransactions().size(), is(1));
-        assertThat(exchange.getTransactions().get(0), is(new Transaction(b1, b2, 12)));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b1, b2, 12)));
 
     }
 
@@ -76,9 +76,9 @@ public class ExchangeTest {
         Bid s2 = exchange.sell(traderB, myStock, 9);
         Bid s3 = exchange.sell(traderB, myStock, 15);
         assertThat(exchange.getTransactions().size(), is(1));
-        assertThat(exchange.getTransactions().get(0), is(new Transaction(b1, s2, 10)));
+        assertThat(exchange.getTransactions().peek(), is(new Transaction(b1, s2, 10)));
 
-        assertThat(exchange.getTransactions().get(0).toString(), is("Transaction{buy=Bid{id=1, trader=Trader{name='Al'}, stock=Stock{name='AB Corp', ticker='ABC'}, price=10.0}, sell=Bid{id=3, trader=Trader{name='Ben'}, stock=Stock{name='AB Corp', ticker='ABC'}, price=9.0}, price=10.0}"));
+        assertThat(exchange.getTransactions().peek().toString(), is("Transaction{buy=Bid{id=1, trader=Trader{name='Al'}, stock=Stock{name='AB Corp', ticker='ABC'}, price=10.0}, sell=Bid{id=3, trader=Trader{name='Ben'}, stock=Stock{name='AB Corp', ticker='ABC'}, price=9.0}, price=10.0}"));
 
 
     }
@@ -100,10 +100,10 @@ public class ExchangeTest {
         Bid b6 = exchange.buy(traderA, myStock, 12);
         assertThat(exchange.getTransactions().size(), is(3));
 
-        assertThat(exchange.getTransactions().get(0).getPrice(), is(9.0));
-        assertThat(exchange.getTransactions().get(0), is(new Transaction(b4, s1, 9)));
-        assertThat(exchange.getTransactions().get(1), is(new Transaction(b5, s3, 10)));
-        assertThat(exchange.getTransactions().get(2), is(new Transaction(b6, s2, 12)));
+        assertThat(exchange.getTransactions().peek().getPrice(), is(9.0));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b4, s1, 9)));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b5, s3, 10)));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b6, s2, 12)));
 
     }
 
@@ -118,7 +118,7 @@ public class ExchangeTest {
         Bid b2 = exchange.buy(traderA, jkl, 12);
         assertThat(exchange.getTransactions().size(), is(1));
 
-        assertThat(exchange.getTransactions().get(0), is(new Transaction(b2, s1, 12)));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b2, s1, 12)));
 
     }
 
