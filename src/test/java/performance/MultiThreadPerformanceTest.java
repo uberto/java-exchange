@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(value = Parameterized.class)
 public class MultiThreadPerformanceTest {
 
-    public static final int THREAD_POOL_SIZE = 8;
+    public static final int THREAD_POOL_SIZE = 50;
     public static final int BIDS_BLOCK = 5_000;
     public static final int TIMES = 20;
 
@@ -43,6 +43,7 @@ public class MultiThreadPerformanceTest {
         System.out.flush();
         System.out.println("\n-----");
         System.out.println("Testing Multithread with " + exchange.getClass().getSimpleName() + "\n");
+
         this.exchange = exchange;
     }
 
@@ -105,6 +106,8 @@ public class MultiThreadPerformanceTest {
             double bidsDone = BIDS_BLOCK * 2.0 * THREAD_POOL_SIZE;
             System.out.println(j + " done " + bidsDone + " bids in " + ms + " microsec.  (avg." + ms/(bidsDone) +" microsec.) transactions: " + trans + " (" + percent(trans) + "%)");
 
+            System.out.flush();
+
             for (Stock stock : stocks) {
                 verifyOrderedList(exchange.getBuyBidsList(stock));
                 verifyOrderedList(exchange.getSellBidsList(stock));
@@ -162,7 +165,7 @@ public class MultiThreadPerformanceTest {
 
 
     private double percent(int trans) {
-        return (100.0 * trans) / BIDS_BLOCK;
+        return (100.0 * trans) / (THREAD_POOL_SIZE * BIDS_BLOCK);
     }
 
     private Stock randomStock() {

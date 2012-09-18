@@ -64,15 +64,17 @@ public class ExchangeSyncronized implements Exchange {
 
 
     private boolean appendBuyTransaction(Bid buy, SortedMultiset<Bid> offers) {
-        if (offers != null && offers.size() > 0) {
+        if (offers != null) {
             synchronized (offers) {
-                Bid offer = offers.firstEntry().getElement();
-                if (offer.getPrice() <= buy.getPrice()) {
-                    if (!offers.remove(offer)) {
-                        throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
+                if (offers.size() > 0) {
+                    Bid offer = offers.firstEntry().getElement();
+                    if (offer.getPrice() <= buy.getPrice()) {
+                        if (!offers.remove(offer)) {
+                            throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
+                        }
+                        transactions.add(new Transaction(buy, offer, offer.getPrice()));
+                        return true;
                     }
-                    transactions.add(new Transaction(buy, offer, offer.getPrice()));
-                    return true;
                 }
             }
         }
@@ -80,18 +82,19 @@ public class ExchangeSyncronized implements Exchange {
     }
 
     private boolean appendSellTransaction(Bid sell, SortedMultiset<Bid> offers) {
-        if (offers != null && offers.size() > 0) {
+        if (offers != null) {
             synchronized (offers) {
-                Bid offer = offers.lastEntry().getElement();
-                if (sell.getPrice() <= offer.getPrice()) {
-                    if (!offers.remove(offer)) {
-                        throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
+                if (offers.size() > 0) {
+                    Bid offer = offers.lastEntry().getElement();
+                    if (sell.getPrice() <= offer.getPrice()) {
+                        if (!offers.remove(offer)) {
+                            throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
+                        }
+                        transactions.add(new Transaction(offer, sell, offer.getPrice()));
+                        return true;
                     }
-                    transactions.add(new Transaction(offer, sell, offer.getPrice()));
-                    return true;
                 }
             }
-
         }
         return false;
     }

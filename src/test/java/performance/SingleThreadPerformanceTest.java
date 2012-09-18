@@ -92,6 +92,7 @@ public class SingleThreadPerformanceTest {
 
             transactions.clear();
             System.out.println(j + " done " + BIDS_BLOCK * 2 + " bids in " + ms + " microsec.  (avg." + ms/(BIDS_BLOCK * 2.0) +" microsec.) transactions: " + trans + " (" + percent(trans) + "%)");
+            System.out.flush();
 
         }
 
