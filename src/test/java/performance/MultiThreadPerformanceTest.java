@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 @Category(PerformanceTests.class)
 @RunWith(value = Parameterized.class)
-public class SingleThreadPerformanceTest {
+public class MultiThreadPerformanceTest {
 
     public static final int STOCKS_NUMBER = 100;
     public static final int TRADERS_NUMBER = 100;
@@ -37,9 +37,9 @@ public class SingleThreadPerformanceTest {
 
     private Exchange exchange;
 
-    public SingleThreadPerformanceTest(Exchange exchange) {
+    public MultiThreadPerformanceTest(Exchange exchange) {
         System.out.println("\n-----");
-        System.out.println("Testing with " + exchange.getClass().getSimpleName() + "\n");
+        System.out.println("Testing Multithread with " + exchange.getClass().getSimpleName() + "\n");
         this.exchange = exchange;
     }
 
@@ -62,6 +62,15 @@ public class SingleThreadPerformanceTest {
         }
     }
 
+
+    private void verifyOrderedList(SortedMultiset<Bid> buyList) {
+        for (Bid bid : buyList) {
+
+//            System.out.println("price " + bid.getPrice());
+            assertTrue(bid.getPrice() >= buyList.firstEntry().getElement().getPrice());
+            assertTrue(bid.getPrice() <= buyList.lastEntry().getElement().getPrice());
+        }
+    }
 
     private void transactionVerification(List<Transaction> transactions) {
         for (Transaction transaction : transactions) {
@@ -100,16 +109,7 @@ public class SingleThreadPerformanceTest {
 //        outputResult();
     }
 
-    private void outputResult() {
-        for (int i = 0; i < STOCKS_NUMBER; i++) {
-            Stock stock = stocks[i];
-            SortedMultiset<Bid> buyBidsList = exchange.getBuyBidsList(stock);
-            System.out.println(" buy " + stock + "  " + buyBidsList.size() + "  at " + buyBidsList.lastEntry().getElement().getPrice() + " "+ buyBidsList.firstEntry().getElement().getPrice());
-            SortedMultiset<Bid> sellBidsList = exchange.getSellBidsList(stock);
-            System.out.println(" sell " + stock + "  "+ sellBidsList.size() + "  at " + sellBidsList.firstEntry().getElement().getPrice() + " " + sellBidsList.lastEntry().getElement().getPrice());
 
-        }
-    }
 
 
     private double percent(int trans) {
