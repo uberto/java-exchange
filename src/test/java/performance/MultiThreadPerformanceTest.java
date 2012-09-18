@@ -2,7 +2,6 @@ package performance;
 
 import com.gamasoft.example.collections.ExchangeNull;
 import com.gamasoft.example.collections.ExchangeSyncronized;
-import com.gamasoft.example.collections.ExchangeUnsafe;
 import com.gamasoft.example.model.*;
 import com.google.common.collect.SortedMultiset;
 import org.junit.Before;
@@ -14,7 +13,9 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.round;
@@ -25,19 +26,21 @@ import static org.junit.Assert.assertTrue;
 @RunWith(value = Parameterized.class)
 public class MultiThreadPerformanceTest {
 
-    public static final int STOCKS_NUMBER = 100;
-    public static final int TRADERS_NUMBER = 100;
+    public static final int THREAD_POOL_SIZE = 50;
     public static final int BIDS_BLOCK = 5_000;
     public static final int TIMES = 100;
+
+    public static final int STOCKS_NUMBER = 100;
+    public static final int TRADERS_NUMBER = 100;
     private Trader[] traders = new Trader[TRADERS_NUMBER];
     private Stock[] stocks = new Stock[STOCKS_NUMBER];
 
-
-    private Random priceGenerator = new Random( System.currentTimeMillis() );
+    private static final Executor taskExecutor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
     private Exchange exchange;
 
     public MultiThreadPerformanceTest(Exchange exchange) {
+        System.out.flush();
         System.out.println("\n-----");
         System.out.println("Testing Multithread with " + exchange.getClass().getSimpleName() + "\n");
         this.exchange = exchange;
@@ -45,7 +48,7 @@ public class MultiThreadPerformanceTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        Object[][] data = new Object[][] { { new ExchangeNull() }, { new ExchangeUnsafe() }, { new ExchangeSyncronized() }};
+        Object[][] data = new Object[][] { { new ExchangeNull() }, { new ExchangeSyncronized() }};   //, { new ExchangeUnsafe() }
         return Arrays.asList(data);
     }
 
@@ -60,6 +63,7 @@ public class MultiThreadPerformanceTest {
         for (int i = 0; i < TRADERS_NUMBER; i++) {
             traders[i] = new Trader("Trader " + i);
         }
+
     }
 
 
@@ -90,26 +94,71 @@ public class MultiThreadPerformanceTest {
 
         for (int j = 0; j < TIMES; j++) {
 
-            long start = System.nanoTime();
-            for (int i = 0; i < BIDS_BLOCK; i++) {
-                exchange.buy(randomTrader(), randomStock(), randomPrice());
-                exchange.sell(randomTrader(), randomStock(), randomPrice());
-            }
-            long ms = (System.nanoTime() - start) / 1000;
+            long ms = innerTest();
+
             List<Transaction> transactions = exchange.getTransactions();
 
             int trans = transactions.size();
             transactionVerification(transactions);
 
             transactions.clear();
-            System.out.println(j + " done " + BIDS_BLOCK * 2 + " bids in " + ms + " microsec.  (avg." + ms/(BIDS_BLOCK * 2.0) +" microsec.) transactions: " + trans + " (" + percent(trans) + "%)");
+            double bidsDone = BIDS_BLOCK * 2.0 * THREAD_POOL_SIZE;
+            System.out.println(j + " done " + bidsDone + " bids in " + ms + " microsec.  (avg." + ms/(bidsDone) +" microsec.) transactions: " + trans + " (" + percent(trans) + "%)");
+
+            for (Stock stock : stocks) {
+                verifyOrderedList(exchange.getBuyBidsList(stock));
+                verifyOrderedList(exchange.getSellBidsList(stock));
+            }
         }
 
 
 //        outputResult();
     }
 
+    private long innerTest() {
 
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch endLatch = new CountDownLatch(THREAD_POOL_SIZE);
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    startLatch.await();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("start latch interruption", e);
+                }
+
+
+                try {
+                    for (int i = 0; i < BIDS_BLOCK; i++) {
+                        exchange.buy(randomTrader(), randomStock(), randomPrice());
+                        exchange.sell(randomTrader(), randomStock(), randomPrice());
+                    }
+                } finally {
+                    endLatch.countDown();
+                }
+
+            }
+        };
+
+
+
+        for (int i = 0; i < THREAD_POOL_SIZE; i++) {
+
+            taskExecutor.execute(task);
+        }
+        long start = System.nanoTime();
+
+        startLatch.countDown();
+        try {
+            endLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("end latch interruption", e);
+        }
+
+        long timeElapsed = (System.nanoTime() - start) / 1000;
+        return timeElapsed;
+    }
 
 
     private double percent(int trans) {
@@ -126,7 +175,6 @@ public class MultiThreadPerformanceTest {
     }
 
     private double randomPrice() {
-        return (int) round(10000.0 * priceGenerator.nextDouble()) / 10000.0 * 6 + 9;
-//        return (int) round(10000.0 * ThreadLocalRandom.current().nextDouble(9, 15)) / 10000.0;
+        return (int) round(10000.0 * ThreadLocalRandom.current().nextDouble(9, 15)) / 10000.0;
     }
 }

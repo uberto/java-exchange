@@ -38,6 +38,7 @@ public class SingleThreadPerformanceTest {
     private Exchange exchange;
 
     public SingleThreadPerformanceTest(Exchange exchange) {
+        System.out.flush();
         System.out.println("\n-----");
         System.out.println("Testing with " + exchange.getClass().getSimpleName() + "\n");
         this.exchange = exchange;
@@ -94,6 +95,7 @@ public class SingleThreadPerformanceTest {
 
             transactions.clear();
             System.out.println(j + " done " + BIDS_BLOCK * 2 + " bids in " + ms + " microsec.  (avg." + ms/(BIDS_BLOCK * 2.0) +" microsec.) transactions: " + trans + " (" + percent(trans) + "%)");
+
         }
 
 
@@ -127,6 +129,5 @@ public class SingleThreadPerformanceTest {
 
     private double randomPrice() {
         return (int) round(10000.0 * priceGenerator.nextDouble()) / 10000.0 * 6 + 9;
-//        return (int) round(10000.0 * ThreadLocalRandom.current().nextDouble(9, 15)) / 10000.0;
     }
 }
