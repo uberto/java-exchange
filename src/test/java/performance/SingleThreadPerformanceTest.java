@@ -18,8 +18,6 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.round;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 
@@ -63,28 +61,6 @@ public class SingleThreadPerformanceTest {
         }
     }
 
-    @Test
-    public void buyAndSellAFewTimes() throws Exception {
-        Stock stock = stocks[0];
-        for (int i = 0; i < 1000; i++) {
-            exchange.buy(randomTrader(), stock, randomPrice());
-
-            assertThat(exchange.getBuyBidsList(stock).size(), is(exchange.getSellBidsList(stock).size() + 1));
-
-            exchange.sell(randomTrader(), stock, randomPrice());
-            assertThat(exchange.getBuyBidsList(stock).size(), is(exchange.getSellBidsList(stock).size()));
-
-            assertThat((exchange.getBuyBidsList(stock).size() + exchange.getSellBidsList(stock).size()) / 2 + exchange.getTransactions().size(), is(i + 1));
-        }
-//        assertThat(exchange.getTransactions().size(), is(24));
-        System.out.println("getTransactions().size() " + exchange.getTransactions().size());
-
-
-        verifyOrderedList(exchange.getBuyBidsList(stock));
-        verifyOrderedList(exchange.getSellBidsList(stock));
-
-        transactionVerification(exchange.getTransactions());
-    }
 
     private void verifyOrderedList(SortedMultiset<Bid> buyList) {
         for (Bid bid : buyList) {

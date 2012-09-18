@@ -1,18 +1,38 @@
 package com.gamasoft.example.model;
 
 import com.gamasoft.example.collections.ExchangeSyncronized;
+import com.gamasoft.example.collections.ExchangeUnsafe;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 
+@RunWith(value = Parameterized.class)
 public class ExchangeTest {
 
-    private Exchange exchange;
     private Trader traderA;
     private Trader traderB;
+
+    private Exchange exchange;
+
+    public ExchangeTest(Exchange exchange) {
+        System.out.println("Testing with " + exchange.getClass().getSimpleName());
+        this.exchange = exchange;
+    }
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() {
+        Object[][] data = new Object[][] { { new ExchangeSyncronized() }, { new ExchangeUnsafe() }};
+        return Arrays.asList(data);
+    }
+
 
     @Before
     public void setUp() throws Exception {
@@ -96,6 +116,33 @@ public class ExchangeTest {
 
         assertThat(exchange.getTransactions().get(0), is(new Transaction(b2, s1, 12)));
 
+    }
+
+    @Test
+
+    public void buyAndSellAFewTimes() throws Exception {
+        Stock stock = new Stock("ABC", "AB Corp");
+        for (int i = 0; i < 1000; i++) {
+            exchange.buy(traderA, stock, buyPrice(i));
+
+            assertThat(exchange.getBuyBidsList(stock).size(), is(exchange.getSellBidsList(stock).size() + 1));
+
+            exchange.sell(traderB, stock, sellPrice(i));
+            assertThat(exchange.getBuyBidsList(stock).size(), is(exchange.getSellBidsList(stock).size()));
+
+            assertThat((exchange.getBuyBidsList(stock).size() + exchange.getSellBidsList(stock).size()) / 2 + exchange.getTransactions().size(), is(i + 1));
+        }
+//        assertTrue(exchange.getTransactions().size() > 750); //about 78% of total
+        System.out.println("getTransactions().size() " + exchange.getTransactions().size());
+
+    }
+
+    private double sellPrice(int i) {
+        return 10.5 - i / 1000.0;
+    }
+
+    private double buyPrice(int i) {
+        return 9.5 + i / 1000.0;
     }
 
 

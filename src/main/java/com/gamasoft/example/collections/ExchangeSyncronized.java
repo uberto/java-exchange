@@ -102,5 +102,8 @@ public class ExchangeSyncronized implements Exchange {
         return transactions;
     }
 
-
+    @Override
+    public String toString() {
+        return "ExchangeSyncronized";
+    }
 }
