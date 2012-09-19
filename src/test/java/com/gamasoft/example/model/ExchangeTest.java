@@ -2,7 +2,7 @@ package com.gamasoft.example.model;
 
 import com.gamasoft.example.collections.ExchangeSyncronized;
 import com.gamasoft.example.collections.ExchangeUnsafe;
-import com.google.common.collect.SortedMultiset;
+import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,11 +10,17 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Queue;
+import java.util.SortedSet;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.closeTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.core.AnyOf.anyOf;
 import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
+import static org.hamcrest.number.OrderingComparison.lessThan;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(value = Parameterized.class)
 public class ExchangeTest {
@@ -33,7 +39,7 @@ public class ExchangeTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        Object[][] data = new Object[][] { { new ExchangeSyncronized() }, { new ExchangeUnsafe() }};
+        Object[][] data = new Object[][]{{new ExchangeSyncronized()}, {new ExchangeUnsafe()}};
         return Arrays.asList(data);
     }
 
@@ -137,31 +143,63 @@ public class ExchangeTest {
             assertThat((exchange.getBuyBidsList(stock).size() + exchange.getSellBidsList(stock).size()) / 2 + exchange.getTransactions().size(), is(i + 1));
         }
 
-        assertTrue(exchange.getBuyBidsList(stock).lastEntry().getElement().getPrice() < exchange.getSellBidsList(stock).firstEntry().getElement().getPrice());
+        assertThat(exchange.getBuyBidsList(stock).last().getPrice(), lessThan(exchange.getSellBidsList(stock).first().getPrice()));
 
         verifyOrderedList(exchange.getBuyBidsList(stock));
         verifyOrderedList(exchange.getSellBidsList(stock));
 
-        assertThat(exchange.getTransactions().size(), is(NUMBER_OF_BIDS/2 - 1));
+        assertThat(exchange.getTransactions().size(), is(NUMBER_OF_BIDS / 2 - 1));
         System.out.println("getTransactions().size() " + exchange.getTransactions().size());
 
     }
 
     private double sellPrice(int i) {
-        return 13 - (2.0 *i) / NUMBER_OF_BIDS;
+        return 13 - (2.0 * i) / NUMBER_OF_BIDS;
     }
 
     private double buyPrice(int i) {
-        return 10 + (2.0 *i) / NUMBER_OF_BIDS;
+        return 10 + (2.0 * i) / NUMBER_OF_BIDS;
     }
 
-    private void verifyOrderedList(SortedMultiset<Bid> bidList) {
-        for (Bid bid : bidList) {
 
-//            System.out.println("price " + bid.getPrice());
-            assertTrue(bid.getPrice() >= bidList.firstEntry().getElement().getPrice());
-            assertTrue(bid.getPrice() <= bidList.lastEntry().getElement().getPrice());
+    public static void verifyOrderedList(SortedSet<Bid> bids) {
+        if (bids.size() > 0) {
+            double firstPrice = bids.first().getPrice();
+            double lastPrice = bids.last().getPrice();
+            for (Bid bid : bids) {
+                MatcherAssert.assertThat(bid.getPrice(), greaterThanOrEqualTo(firstPrice));
+                MatcherAssert.assertThat(bid.getPrice(), lessThanOrEqualTo(lastPrice));
+            }
         }
     }
+
+    public static void transactionVerification(Queue<Transaction> transactions) {
+        for (Transaction transaction : transactions) {
+
+            MatcherAssert.assertThat(transaction.getBuy().getStock(), is(transaction.getSell().getStock()));
+
+            double buyPrice = transaction.getBuy().getPrice();
+            double sellPrice = transaction.getSell().getPrice();
+            double transactionPrice = transaction.getPrice();
+
+
+            MatcherAssert.assertThat(buyPrice, greaterThanOrEqualTo(sellPrice));
+            MatcherAssert.assertThat(transactionPrice, anyOf(
+                    closeTo(buyPrice, 0.0001),
+                    closeTo(sellPrice, 0.0001)));
+        }
+    }
+
+    public static void outputResult(Stock[] stocks, Exchange exchange) {
+
+        for (Stock stock : stocks) {
+            SortedSet<Bid> buyBidsList = exchange.getBuyBidsList(stock);
+            System.out.println(" buy " + stock + "  " + buyBidsList.size() + "  at " + buyBidsList.last().getPrice() + " " + buyBidsList.first().getPrice());
+            SortedSet<Bid> sellBidsList = exchange.getSellBidsList(stock);
+            System.out.println(" sell " + stock + "  " + sellBidsList.size() + "  at " + sellBidsList.first().getPrice() + " " + sellBidsList.last().getPrice());
+
+        }
+    }
+
 
 }

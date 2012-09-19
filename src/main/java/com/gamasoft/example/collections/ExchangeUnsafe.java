@@ -1,23 +1,21 @@
 package com.gamasoft.example.collections;
 
 import com.gamasoft.example.model.*;
-import com.google.common.collect.SortedMultiset;
-import com.google.common.collect.TreeMultiset;
 
 import java.util.*;
 
 public class ExchangeUnsafe implements Exchange {
-    private Map<Stock, SortedMultiset<Bid>> sellBids = new HashMap<>();
-    private Map<Stock, SortedMultiset<Bid>> buyBids = new HashMap<>();
+    private Map<Stock, SortedSet<Bid>> sellBids = new HashMap<>();
+    private Map<Stock, SortedSet<Bid>> buyBids = new HashMap<>();
     private Queue<Transaction> transactions = new LinkedList<>();
     private int nextBidId = 1;
 
     @Override
     public Bid sell(Trader trader, Stock stock, double minPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, minPrice);
-        SortedMultiset<Bid> offers = buyBids.get(stock);
+        SortedSet<Bid> offers = buyBids.get(stock);
         if (!appendSellTransaction(bid, offers)) {
-            SortedMultiset<Bid> sellBidsList = getSellBidsList(stock);
+            SortedSet<Bid> sellBidsList = getSellBidsList(stock);
             if (!sellBidsList.add(bid)){
                 throw new RuntimeException("impossible to add " + bid + "  to sellList " + sellBidsList);
             }
@@ -30,9 +28,9 @@ public class ExchangeUnsafe implements Exchange {
     @Override
     public Bid buy(Trader trader, Stock stock, double maxPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, maxPrice);
-        SortedMultiset<Bid> offers = sellBids.get(stock);
+        SortedSet<Bid> offers = sellBids.get(stock);
         if (!appendBuyTransaction(bid, offers)) {
-            SortedMultiset<Bid> buyBidsList = getBuyBidsList(stock);
+            SortedSet<Bid> buyBidsList = getBuyBidsList(stock);
             if (!buyBidsList.add(bid)){
                 throw new RuntimeException("impossible to add " + bid + "  to buyList " + buyBidsList);
             }
@@ -46,24 +44,19 @@ public class ExchangeUnsafe implements Exchange {
 
 
 
-    private SortedMultiset<Bid> addListToMap(Stock stock, Map<Stock, SortedMultiset<Bid>> map) {
-        SortedMultiset<Bid> stockBids = map.get(stock);
+    private SortedSet<Bid> addListToMap(Stock stock, Map<Stock, SortedSet<Bid>> map) {
+        SortedSet<Bid> stockBids = map.get(stock);
         if (stockBids == null) {
-            stockBids = TreeMultiset.create(new Comparator<Bid>() {
-                @Override
-                public int compare(Bid o1, Bid o2) {
-                    return (int) (10000 * (o1.getPrice() - o2.getPrice()));
-                }
-            });
+            stockBids = new TreeSet<>();
             map.put(stock, stockBids);
         }
         return stockBids;
     }
 
 
-    private boolean appendBuyTransaction(Bid buy, SortedMultiset<Bid> offers) {
+    private boolean appendBuyTransaction(Bid buy, SortedSet<Bid> offers) {
         if (offers != null && offers.size() > 0) {
-            Bid offer = offers.firstEntry().getElement();
+            Bid offer = offers.first();
             if (offer.getPrice() <= buy.getPrice()) {
                 if (!offers.remove(offer)){
                     throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
@@ -76,9 +69,9 @@ public class ExchangeUnsafe implements Exchange {
         return false;
     }
 
-    private boolean appendSellTransaction(Bid sell, SortedMultiset<Bid> offers) {
+    private boolean appendSellTransaction(Bid sell, SortedSet<Bid> offers) {
         if (offers != null && offers.size() > 0) {
-            Bid offer = offers.lastEntry().getElement();
+            Bid offer = offers.last();
             if (sell.getPrice() <= offer.getPrice()) {
                 if (!offers.remove(offer)){
                     throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
@@ -92,12 +85,12 @@ public class ExchangeUnsafe implements Exchange {
     }
 
     @Override
-    public SortedMultiset<Bid> getBuyBidsList(Stock stock) {
+    public SortedSet<Bid> getBuyBidsList(Stock stock) {
         return addListToMap(stock, buyBids);
     }
 
     @Override
-    public SortedMultiset<Bid> getSellBidsList(Stock stock) {
+    public SortedSet<Bid> getSellBidsList(Stock stock) {
         return addListToMap(stock, sellBids);
     }
 

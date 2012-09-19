@@ -1,16 +1,16 @@
 package com.gamasoft.example.collections;
 
 import com.gamasoft.example.model.*;
-import com.google.common.collect.SortedMultiset;
-import com.google.common.collect.TreeMultiset;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ExchangeNull implements Exchange {
     private Bid nullBid = new Bid(0, new Trader("nullTrader"), new Stock("NN", "Null Stock"), 0);
     private Queue<Transaction> nullTransList = new LinkedList<>();
-    private SortedMultiset<Bid> nullBidsSorted = TreeMultiset.create();
+    private SortedSet<Bid> nullBidsSorted = new TreeSet<>();
 
     @Override
     public Bid sell(Trader trader, Stock stock, double minPrice) {
@@ -28,12 +28,12 @@ public class ExchangeNull implements Exchange {
     }
 
     @Override
-    public SortedMultiset<Bid> getBuyBidsList(Stock stock) {
+    public SortedSet<Bid> getBuyBidsList(Stock stock) {
         return nullBidsSorted;
     }
 
     @Override
-    public SortedMultiset<Bid> getSellBidsList(Stock stock) {
+    public SortedSet<Bid> getSellBidsList(Stock stock) {
         return nullBidsSorted;
     }
 }

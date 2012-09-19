@@ -1,8 +1,7 @@
 package com.gamasoft.example.model;
 
-import com.google.common.collect.SortedMultiset;
-
 import java.util.Queue;
+import java.util.SortedSet;
 
 public interface Exchange {
 
@@ -12,7 +11,7 @@ public interface Exchange {
 
     public Queue<Transaction> getTransactions();
 
-    public SortedMultiset<Bid> getBuyBidsList(Stock stock);
+    public SortedSet<Bid> getBuyBidsList(Stock stock);
 
-    public SortedMultiset<Bid> getSellBidsList(Stock stock);
+    public SortedSet<Bid> getSellBidsList(Stock stock);
 }

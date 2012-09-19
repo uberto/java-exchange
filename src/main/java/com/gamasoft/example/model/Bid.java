@@ -69,6 +69,19 @@ public class Bid implements Comparable<Bid> {
 
     @Override
     public int compareTo(Bid o) {
-        return (int) (10000 * (this.getPrice() - o.getPrice()));
+        if (this.equals(o)){
+            return 0;
+        }
+        int priceDiff = Double.compare(this.getPrice(), o.getPrice());
+        if (priceDiff == 0) {
+
+            if (this.getId() > o.getId()){
+                return 1;
+            } else {
+                return -1;
+            }
+        } else {
+            return priceDiff;
+        }
     }
 }

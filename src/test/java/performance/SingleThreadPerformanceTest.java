@@ -3,19 +3,25 @@ package performance;
 import com.gamasoft.example.collections.ExchangeNull;
 import com.gamasoft.example.collections.ExchangeSyncronized;
 import com.gamasoft.example.collections.ExchangeUnsafe;
-import com.gamasoft.example.model.*;
-import com.google.common.collect.SortedMultiset;
+import com.gamasoft.example.model.Exchange;
+import com.gamasoft.example.model.Stock;
+import com.gamasoft.example.model.Trader;
+import com.gamasoft.example.model.Transaction;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.gamasoft.example.model.ExchangeTest.transactionVerification;
+import static com.gamasoft.example.model.ExchangeTest.verifyOrderedList;
 import static java.lang.Math.round;
-import static org.junit.Assert.assertTrue;
 
 
 @Category(PerformanceTests.class)
@@ -61,18 +67,6 @@ public class SingleThreadPerformanceTest {
     }
 
 
-    private void transactionVerification(Queue<Transaction> transactions) {
-        for (Transaction transaction : transactions) {
-
-            assertTrue(transaction.getBuy().getPrice() >= transaction.getSell().getPrice());
-            assertTrue(transaction.getBuy().getStock().equals(transaction.getSell().getStock()));
-
-            assertTrue(transaction.getBuy().getPrice() == transaction.getPrice() ||
-                    transaction.getSell().getPrice() == transaction.getPrice());
-        }
-    }
-
-
     @Test
     public void buyAndSellManyTimes() throws Exception {
 
@@ -94,22 +88,17 @@ public class SingleThreadPerformanceTest {
             System.out.println(j + " done " + BIDS_BLOCK * 2 + " bids in " + ms + " microsec.  (avg." + ms/(BIDS_BLOCK * 2.0) +" microsec.) transactions: " + trans + " (" + percent(trans) + "%)");
             System.out.flush();
 
+            for (Stock stock : stocks) {
+                verifyOrderedList(exchange.getBuyBidsList(stock));
+                verifyOrderedList(exchange.getSellBidsList(stock));
+            }
+
         }
 
 
 //        outputResult();
     }
 
-    private void outputResult() {
-        for (int i = 0; i < STOCKS_NUMBER; i++) {
-            Stock stock = stocks[i];
-            SortedMultiset<Bid> buyBidsList = exchange.getBuyBidsList(stock);
-            System.out.println(" buy " + stock + "  " + buyBidsList.size() + "  at " + buyBidsList.lastEntry().getElement().getPrice() + " "+ buyBidsList.firstEntry().getElement().getPrice());
-            SortedMultiset<Bid> sellBidsList = exchange.getSellBidsList(stock);
-            System.out.println(" sell " + stock + "  "+ sellBidsList.size() + "  at " + sellBidsList.firstEntry().getElement().getPrice() + " " + sellBidsList.lastEntry().getElement().getPrice());
-
-        }
-    }
 
 
     private double percent(int trans) {

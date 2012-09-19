@@ -1,28 +1,28 @@
 package com.gamasoft.example.collections;
 
 import com.gamasoft.example.model.*;
-import com.google.common.collect.SortedMultiset;
-import com.google.common.collect.TreeMultiset;
 
 import java.util.Map;
 import java.util.Queue;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExchangeSyncronized implements Exchange {
 
-    private Map<Stock, SortedMultiset<Bid>> sellBids = new ConcurrentHashMap<>();
-    private Map<Stock, SortedMultiset<Bid>> buyBids = new ConcurrentHashMap<>();
+    private Map<Stock, SortedSet<Bid>> sellBids = new ConcurrentHashMap<>();
+    private Map<Stock, SortedSet<Bid>> buyBids = new ConcurrentHashMap<>();
     private Queue<Transaction> transactions = new ConcurrentLinkedQueue<>();
     private AtomicInteger nextBidId = new AtomicInteger(0);
 
     @Override
     public Bid sell(Trader trader, Stock stock, double minPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, minPrice);
-        SortedMultiset<Bid> offers = buyBids.get(stock);
+        SortedSet<Bid> offers = buyBids.get(stock);
         if (!appendSellTransaction(bid, offers)) {
-            SortedMultiset<Bid> sellBidsList = getSellBidsList(stock);
+            SortedSet<Bid> sellBidsList = getSellBidsList(stock);
             synchronized (sellBidsList) {
                 if (!sellBidsList.add(bid)) {
                     throw new RuntimeException("impossible to add " + bid + "  to sellList " + sellBidsList);
@@ -36,9 +36,9 @@ public class ExchangeSyncronized implements Exchange {
     @Override
     public Bid buy(Trader trader, Stock stock, double maxPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, maxPrice);
-        SortedMultiset<Bid> offers = sellBids.get(stock);
+        SortedSet<Bid> offers = sellBids.get(stock);
         if (!appendBuyTransaction(bid, offers)) {
-            SortedMultiset<Bid> buyBidsList = getBuyBidsList(stock);
+            SortedSet<Bid> buyBidsList = getBuyBidsList(stock);
             synchronized (buyBidsList) {
                 if (!buyBidsList.add(bid)) {
                     throw new RuntimeException("impossible to add " + bid + "  to buyList " + buyBidsList);
@@ -53,21 +53,21 @@ public class ExchangeSyncronized implements Exchange {
     }
 
 
-    private SortedMultiset<Bid> addListToMap(Stock stock, Map<Stock, SortedMultiset<Bid>> map) {
-        SortedMultiset<Bid> stockBids = map.get(stock);
+    private SortedSet<Bid> addListToMap(Stock stock, Map<Stock, SortedSet<Bid>> map) {
+        SortedSet<Bid> stockBids = map.get(stock);
         if (stockBids == null) {
-            stockBids = TreeMultiset.create();
+            stockBids = new TreeSet<>();
             map.put(stock, stockBids);
         }
         return stockBids;
     }
 
 
-    private boolean appendBuyTransaction(Bid buy, SortedMultiset<Bid> offers) {
+    private boolean appendBuyTransaction(Bid buy, SortedSet<Bid> offers) {
         if (offers != null) {
             synchronized (offers) {
                 if (offers.size() > 0) {
-                    Bid offer = offers.firstEntry().getElement();
+                    Bid offer = offers.first();
                     if (offer.getPrice() <= buy.getPrice()) {
                         if (!offers.remove(offer)) {
                             throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
@@ -81,11 +81,11 @@ public class ExchangeSyncronized implements Exchange {
         return false;
     }
 
-    private boolean appendSellTransaction(Bid sell, SortedMultiset<Bid> offers) {
+    private boolean appendSellTransaction(Bid sell, SortedSet<Bid> offers) {
         if (offers != null) {
             synchronized (offers) {
                 if (offers.size() > 0) {
-                    Bid offer = offers.lastEntry().getElement();
+                    Bid offer = offers.last();
                     if (sell.getPrice() <= offer.getPrice()) {
                         if (!offers.remove(offer)) {
                             throw new RuntimeException("impossible to remove " + offer + "  set content " + offers);
@@ -100,12 +100,12 @@ public class ExchangeSyncronized implements Exchange {
     }
 
     @Override
-    public synchronized SortedMultiset<Bid> getBuyBidsList(Stock stock) {
+    public synchronized SortedSet<Bid> getBuyBidsList(Stock stock) {
         return addListToMap(stock, buyBids);
     }
 
     @Override
-    public synchronized SortedMultiset<Bid> getSellBidsList(Stock stock) {
+    public synchronized SortedSet<Bid> getSellBidsList(Stock stock) {
         return addListToMap(stock, sellBids);
     }
 

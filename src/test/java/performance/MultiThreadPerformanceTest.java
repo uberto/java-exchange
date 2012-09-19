@@ -1,9 +1,13 @@
 package performance;
 
+
+
 import com.gamasoft.example.collections.ExchangeNull;
 import com.gamasoft.example.collections.ExchangeSyncronized;
-import com.gamasoft.example.model.*;
-import com.google.common.collect.SortedMultiset;
+import com.gamasoft.example.model.Exchange;
+import com.gamasoft.example.model.Stock;
+import com.gamasoft.example.model.Trader;
+import com.gamasoft.example.model.Transaction;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -18,13 +22,18 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.gamasoft.example.model.ExchangeTest.transactionVerification;
+import static com.gamasoft.example.model.ExchangeTest.verifyOrderedList;
 import static java.lang.Math.round;
-import static org.junit.Assert.assertTrue;
+
+
+
 
 
 @Category(PerformanceTests.class)
 @RunWith(value = Parameterized.class)
 public class MultiThreadPerformanceTest {
+
 
     public static final int THREAD_POOL_SIZE = 50;
     public static final int BIDS_BLOCK = 5_000;
@@ -49,10 +58,9 @@ public class MultiThreadPerformanceTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        Object[][] data = new Object[][] { { new ExchangeNull() }, { new ExchangeSyncronized() }};   //, { new ExchangeUnsafe() }
+        Object[][] data = new Object[][]{{new ExchangeNull()}, {new ExchangeSyncronized()}};   //, { new ExchangeUnsafe() }
         return Arrays.asList(data);
     }
-
 
 
     @Before
@@ -68,25 +76,6 @@ public class MultiThreadPerformanceTest {
     }
 
 
-    private void verifyOrderedList(SortedMultiset<Bid> buyList) {
-        for (Bid bid : buyList) {
-
-//            System.out.println("price " + bid.getPrice());
-            assertTrue(bid.getPrice() >= buyList.firstEntry().getElement().getPrice());
-            assertTrue(bid.getPrice() <= buyList.lastEntry().getElement().getPrice());
-        }
-    }
-
-    private void transactionVerification(Queue<Transaction> transactions) {
-        for (Transaction transaction : transactions) {
-
-            assertTrue(transaction.getBuy().getPrice() >= transaction.getSell().getPrice());
-            assertTrue(transaction.getBuy().getStock().equals(transaction.getSell().getStock()));
-
-            assertTrue(transaction.getBuy().getPrice() == transaction.getPrice() ||
-                    transaction.getSell().getPrice() == transaction.getPrice());
-        }
-    }
 
 
     @Test
@@ -104,7 +93,7 @@ public class MultiThreadPerformanceTest {
 
             transactions.clear();
             double bidsDone = BIDS_BLOCK * 2.0 * THREAD_POOL_SIZE;
-            System.out.println(j + " done " + bidsDone + " bids in " + ms + " microsec.  (avg." + ms/(bidsDone) +" microsec.) transactions: " + trans + " (" + percent(trans) + "%)");
+            System.out.println(j + " done " + bidsDone + " bids in " + ms + " microsec.  (avg." + ms / (bidsDone) + " microsec.) transactions: " + trans + " (" + percent(trans) + "%)");
 
             System.out.flush();
 
@@ -143,7 +132,6 @@ public class MultiThreadPerformanceTest {
 
             }
         };
-
 
 
         for (int i = 0; i < THREAD_POOL_SIZE; i++) {
