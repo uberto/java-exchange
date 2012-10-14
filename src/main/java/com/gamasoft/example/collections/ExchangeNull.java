@@ -36,4 +36,6 @@ public class ExchangeNull implements Exchange {
     public SortedSet<Bid> getSellBidsList(Stock stock) {
         return nullBidsSorted;
     }
+
+
 }

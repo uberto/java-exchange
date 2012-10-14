@@ -2,6 +2,7 @@ package performance;
 
 
 
+import com.gamasoft.example.collections.ExchangeLambda;
 import com.gamasoft.example.collections.ExchangeNull;
 import com.gamasoft.example.collections.ExchangeSyncronized;
 import com.gamasoft.example.model.Exchange;
@@ -25,9 +26,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.gamasoft.example.model.ExchangeTest.transactionVerification;
 import static com.gamasoft.example.model.ExchangeTest.verifyOrderedList;
 import static java.lang.Math.round;
-
-
-
 
 
 @Category(PerformanceTests.class)
@@ -58,7 +56,7 @@ public class MultiThreadPerformanceTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        Object[][] data = new Object[][]{{new ExchangeNull()}, {new ExchangeSyncronized()}};   //, { new ExchangeUnsafe() }
+        Object[][] data = new Object[][]{{new ExchangeNull()}, {new ExchangeSyncronized()}, {new ExchangeLambda()}};   //, { new ExchangeUnsafe() }
         return Arrays.asList(data);
     }
 

@@ -2,10 +2,7 @@ package com.gamasoft.example.collections;
 
 import com.gamasoft.example.model.*;
 
-import java.util.Map;
-import java.util.Queue;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,8 +17,7 @@ public class ExchangeSyncronized implements Exchange {
     @Override
     public Bid sell(Trader trader, Stock stock, double minPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, minPrice);
-        SortedSet<Bid> offers = buyBids.get(stock);
-        if (!appendSellTransaction(bid, offers)) {
+        if (!appendSellTransaction(bid, buyBids.get(stock))) {
             SortedSet<Bid> sellBidsList = getSellBidsList(stock);
             synchronized (sellBidsList) {
                 if (!sellBidsList.add(bid)) {
@@ -36,8 +32,7 @@ public class ExchangeSyncronized implements Exchange {
     @Override
     public Bid buy(Trader trader, Stock stock, double maxPrice) {
         Bid bid = new Bid(newBidId(), trader, stock, maxPrice);
-        SortedSet<Bid> offers = sellBids.get(stock);
-        if (!appendBuyTransaction(bid, offers)) {
+        if (!appendBuyTransaction(bid, sellBids.get(stock))) {
             SortedSet<Bid> buyBidsList = getBuyBidsList(stock);
             synchronized (buyBidsList) {
                 if (!buyBidsList.add(bid)) {
@@ -114,8 +109,4 @@ public class ExchangeSyncronized implements Exchange {
         return transactions;
     }
 
-    @Override
-    public String toString() {
-        return "ExchangeSyncronized";
-    }
 }

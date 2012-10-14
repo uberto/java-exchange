@@ -1,5 +1,6 @@
 package performance;
 
+import com.gamasoft.example.collections.ExchangeLambda;
 import com.gamasoft.example.collections.ExchangeNull;
 import com.gamasoft.example.collections.ExchangeSyncronized;
 import com.gamasoft.example.collections.ExchangeUnsafe;
@@ -49,7 +50,7 @@ public class SingleThreadPerformanceTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        Object[][] data = new Object[][] { { new ExchangeNull() }, { new ExchangeUnsafe() }, { new ExchangeSyncronized() }};
+        Object[][] data = new Object[][] { { new ExchangeNull() }, { new ExchangeUnsafe() }, { new ExchangeSyncronized() }, {new ExchangeLambda()}};
         return Arrays.asList(data);
     }
 

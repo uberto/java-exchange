@@ -1,5 +1,6 @@
 package com.gamasoft.example.model;
 
+import com.gamasoft.example.collections.ExchangeLambda;
 import com.gamasoft.example.collections.ExchangeSyncronized;
 import com.gamasoft.example.collections.ExchangeUnsafe;
 import org.hamcrest.MatcherAssert;
@@ -29,25 +30,23 @@ public class ExchangeTest {
     private Trader traderA;
     private Trader traderB;
 
-    private Exchange exchange;
+    private final Exchange exchange;
 
-    public ExchangeTest(Exchange exchange) {
+    public ExchangeTest(Class<Exchange> exchangeClass) throws IllegalAccessException, InstantiationException {
         System.out.flush();
-        System.out.println("Testing with " + exchange.getClass().getSimpleName());
-        this.exchange = exchange;
+        System.out.println("Testing with " + exchangeClass.getSimpleName());
+        this.exchange = exchangeClass.newInstance();
     }
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        Object[][] data = new Object[][]{{new ExchangeSyncronized()}, {new ExchangeUnsafe()}};
+        Object[][] data = new Object[][]{{ExchangeSyncronized.class}, {ExchangeUnsafe.class}, {ExchangeLambda.class}};
         return Arrays.asList(data);
     }
 
 
     @Before
     public void setUp() throws Exception {
-        exchange = new ExchangeSyncronized();
-
         traderA = new Trader("Al");
         traderB = new Trader("Ben");
 
@@ -112,6 +111,31 @@ public class ExchangeTest {
         assertThat(exchange.getTransactions().poll(), is(new Transaction(b6, s2, 12)));
 
     }
+
+    @Test
+    public void getAlwaysTheHighestBuy() throws Exception {
+
+        Stock myStock = new Stock("ABC", "AB Corp");
+        Bid b1 = exchange.buy(traderB, myStock, 15);
+        Bid b2 = exchange.buy(traderB, myStock, 12);
+        Bid b3 = exchange.buy(traderB, myStock, 13);
+        Bid b4 = exchange.buy(traderB, myStock, 11);
+        assertThat(exchange.getTransactions().size(), is(0));
+
+        Bid s1 = exchange.sell(traderA, myStock, 12);
+        assertThat(exchange.getTransactions().size(), is(1));
+        Bid s2 = exchange.sell(traderA, myStock, 12);
+        assertThat(exchange.getTransactions().size(), is(2));
+        Bid s3 = exchange.sell(traderA, myStock, 12);
+        assertThat(exchange.getTransactions().size(), is(3));
+
+        assertThat(exchange.getTransactions().peek().getPrice(), is(15.0));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b1, s1, 15)));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b3, s2, 13)));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b2, s3, 12)));
+
+    }
+
 
     @Test
     public void ignoreOtherStocks() throws Exception {

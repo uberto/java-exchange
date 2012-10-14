@@ -14,4 +14,8 @@ public interface Exchange {
     public SortedSet<Bid> getBuyBidsList(Stock stock);
 
     public SortedSet<Bid> getSellBidsList(Stock stock);
+
+    public String getName() default {
+        return getClass().getSimpleName();
+    }
 }
