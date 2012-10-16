@@ -35,7 +35,7 @@ public class MultiThreadPerformanceTest {
 
     public static final int THREAD_POOL_SIZE = 50;
     public static final int BIDS_BLOCK = 5_000;
-    public static final int TIMES = 20;
+    public static final int TIMES = 10;
 
     public static final int STOCKS_NUMBER = 100;
     public static final int TRADERS_NUMBER = 100;

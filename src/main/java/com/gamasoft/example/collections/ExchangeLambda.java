@@ -32,7 +32,8 @@ public class ExchangeLambda implements Exchange {
                 current -> minPrice <= current.getPrice(),
                 SortedSet::last,
                 buyBids.get(stock),
-                sellBids);
+                sellBids,
+                offer -> new Transaction(offer, bid, offer.getPrice()));
         return bid;
     }
 
@@ -45,7 +46,8 @@ public class ExchangeLambda implements Exchange {
                 current -> maxPrice >= current.getPrice(),
                 SortedSet::first,
                 sellBids.get(stock),
-                buyBids);
+                buyBids,
+                offer -> new Transaction(bid, offer, offer.getPrice()));
         return bid;
     }
 
@@ -53,23 +55,21 @@ public class ExchangeLambda implements Exchange {
                            Predicate<Bid> isGoodMatch,
                            Mapper<SortedSet<Bid>, Bid> bidMapper,
                            SortedSet<Bid> bidsToMatch,
-                           Map<Stock, SortedSet<Bid>> bidsToAdd) {
+                           Map<Stock, SortedSet<Bid>> bidsToAdd,
+                           TransactionFactory transactionFactory) {
 
 
         if (bidsToMatch != null) {
             synchronized (bidsToMatch) {
                 if (bidsToMatch.size() > 0) {
-                    if (canMatchTransaction(bid, bidsToMatch, bidMapper, isGoodMatch)) {
+                    if (canMatchTransaction(bidsToMatch, bidMapper, isGoodMatch, transactionFactory)) {
                         return;
                     }
                 }
 
             }
         }
-        addToBidList(bid, getBids(bid.getStock(), bidsToAdd));
-    }
-
-    private void addToBidList(Bid bid, SortedSet<Bid> bidList) {
+        SortedSet<Bid> bidList = getBids(bid.getStock(), bidsToAdd);
         synchronized (bidList) {
             if (!bidList.add(bid)) {
                 throw new RuntimeException("impossible to add " + bid + "  to bidList " + bidList);
@@ -91,8 +91,8 @@ public class ExchangeLambda implements Exchange {
     }
 
 
-    private boolean canMatchTransaction(Bid bid, SortedSet<Bid> offers, Mapper<SortedSet<Bid>, Bid> setBidMapper,
-                                        Predicate<Bid> isGoodMatch) {
+    private boolean canMatchTransaction(SortedSet<Bid> offers, Mapper<SortedSet<Bid>, Bid> setBidMapper,
+                                        Predicate<Bid> isGoodMatch, TransactionFactory transactionFactory) {
 
         Bid offer = setBidMapper.map(offers);
         if (isGoodMatch.test(offer)) {
@@ -100,12 +100,7 @@ public class ExchangeLambda implements Exchange {
                 throw new RuntimeException("impossible to remove " + offer + " from set content " + offers);
             }
 
-           if (offers == sellBids.get(bid.getStock())) {
-                transactions.add(new Transaction(bid, offer, offer.getPrice()));
-            } else {
-                transactions.add(new Transaction(offer, bid, offer.getPrice()));
-
-            }
+            transactions.add(transactionFactory.make(offer));
             return true;
         }
 

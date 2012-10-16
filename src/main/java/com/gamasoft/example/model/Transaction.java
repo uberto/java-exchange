@@ -12,6 +12,12 @@ public class Transaction {
         this.price = price;
     }
 
+    public Transaction(Bid buy, Bid sell) {
+        this.buy = buy;
+        this.sell = sell;
+        this.price = sell.getPrice();
+    }
+
     public Bid getBuy() {
         return buy;
     }
