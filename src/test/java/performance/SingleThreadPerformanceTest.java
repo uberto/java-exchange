@@ -32,7 +32,7 @@ public class SingleThreadPerformanceTest {
     public static final int STOCKS_NUMBER = 100;
     public static final int TRADERS_NUMBER = 100;
     public static final int BIDS_BLOCK = 5_000;
-    public static final int TIMES = 100;
+    public static final int TIMES = 50;
     private Trader[] traders = new Trader[TRADERS_NUMBER];
     private Stock[] stocks = new Stock[STOCKS_NUMBER];
 

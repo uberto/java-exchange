@@ -61,7 +61,7 @@ public class ExchangeSyncronized implements Exchange {
     private boolean appendBuyTransaction(Bid buy, SortedSet<Bid> offers) {
         if (offers != null) {
             synchronized (offers) {
-                if (offers.size() > 0) {
+                if (!offers.isEmpty()) {
                     Bid offer = offers.first();
                     if (offer.getPrice() <= buy.getPrice()) {
                         if (!offers.remove(offer)) {
@@ -79,7 +79,7 @@ public class ExchangeSyncronized implements Exchange {
     private boolean appendSellTransaction(Bid sell, SortedSet<Bid> offers) {
         if (offers != null) {
             synchronized (offers) {
-                if (offers.size() > 0) {
+                if (!offers.isEmpty()) {
                     Bid offer = offers.last();
                     if (sell.getPrice() <= offer.getPrice()) {
                         if (!offers.remove(offer)) {

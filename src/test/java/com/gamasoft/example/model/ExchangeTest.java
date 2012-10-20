@@ -54,11 +54,26 @@ public class ExchangeTest {
 
 
     @Test
-    public void acceptBid() throws Exception {
+    public void acceptEqualBid() throws Exception {
 
         Stock myStock = new Stock("ABC", "AB Corp");
         Bid b1 = exchange.buy(traderA, myStock, 12);
         Bid b2 = exchange.sell(traderB, myStock, 12);
+
+        assertThat(b1.getId(), is(1L));
+        assertThat(b2.getId(), is(2L));
+        assertThat(exchange.getTransactions().size(), is(1));
+        assertThat(exchange.getTransactions().poll(), is(new Transaction(b1, b2, 12)));
+
+    }
+
+
+    @Test
+    public void acceptBid() throws Exception {
+
+        Stock myStock = new Stock("ABC", "AB Corp");
+        Bid b1 = exchange.buy(traderA, myStock, 12);
+        Bid b2 = exchange.sell(traderB, myStock, 10);
 
         assertThat(b1.getId(), is(1L));
         assertThat(b2.getId(), is(2L));
@@ -162,6 +177,7 @@ public class ExchangeTest {
             assertThat(exchange.getBuyBidsList(stock).size(), is(exchange.getSellBidsList(stock).size() + 1));
 
             exchange.sell(traderB, stock, sellPrice(i));
+
             assertThat(exchange.getBuyBidsList(stock).size(), is(exchange.getSellBidsList(stock).size()));
 
             assertThat((exchange.getBuyBidsList(stock).size() + exchange.getSellBidsList(stock).size()) / 2 + exchange.getTransactions().size(), is(i + 1));
